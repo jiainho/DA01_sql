@@ -31,10 +31,39 @@ FROM (
 
 FROM Customer) as whole_totals
 WHERE DATEDIFF(visited_on, (SELECT MIN(visited_on) FROM Customer)) >= 6
--- EX 05
-
+-- EX 05  >>
+SELECT ROUND(SUM(TIV_2016),2) AS TIV_2016
+FROM
+(SELECT *,
+COUNT(*) OVER(PARTITION BY TIV_2015) AS CNT1,
+COUNT(*) OVER(PARTITION BY LAT, LON) AS CNT2
+FROM INSURANCE
+) AS TBL
+WHERE CNT1 > =2 AND CNT2 =1
 -- EX 06
-
+SELECT Department, Employee, Salary
+FROM(
+    SELECT D.name AS Department, E.name AS Employee, E.salary AS Salary,
+    DENSE_RANK() OVER (PARTITION BY departmentId ORDER BY salary DESC) AS d_rank
+    FROM Employee E INNER JOIN Department D ON E.departmentId = D.id
+) T
+WHERE d_rank <= 3
 -- EX 07
-
+WITH CumulativeSum AS (
+    SELECT person_name, SUM(weight) OVER (ORDER BY turn) AS cumulative_sum
+    FROM Queue
+)
+SELECT person_name
+FROM CumulativeSum
+WHERE cumulative_sum <= 1000
+ORDER BY cumulative_sum DESC
+LIMIT 1;
 -- EX 08
+SELECT P.product_id, COALESCE(x.new_price,10) as price
+FROM (SELECT *,
+RANK() OVER (PARTITION BY product_id ORDER BY change_date DESC) as drank
+FROM Products
+WHERE change_date <= "2019-08-16") x
+RIGHT JOIN Products P on P.product_id = x.product_id
+WHERE x.drank=1 or x.drank is null
+GROUP BY P.product_id
