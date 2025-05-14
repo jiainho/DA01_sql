@@ -132,3 +132,32 @@ SELECT * FROM bigquery-public-data.thelook_ecommerce.products
 -- id, cost, category,name, brand, retail_price, department, sku, distribution_center_id
 
 
+
+create or replace view vw_ecommerce_analyst AS
+with abc as(
+select
+FORMAT_TIMESTAMP('%Y-%m', c.created_at) as Month,
+Extract(Year from c.created_at) as Year,
+b.category as Product_category,
+sum(a.sale_price) as TPV,
+count(distinct a.order_id) as TPO,
+
+sum(b.cost) as Total_cost,
+sum(a.sale_price)-sum(b.cost) as Total_profit,
+(sum(a.sale_price)-sum(b.cost))/sum(b.cost) as Profit_to_cost_ratio
+
+from bigquery-public-data.thelook_ecommerce.products as b
+join bigquery-public-data.thelook_ecommerce.order_items as a on a.id=b.id
+join bigquery-public-data.thelook_ecommerce.orders as c on a.order_id=c.order_id
+--where a.status = 'Complete'
+group by 1,2,3
+order by 1),
+
+def as(
+select *,
+ROUND(100*(TPV-lag(TPV) over(partition by Product_category order by month))/lag(TPV) over(partition by Product_category order by month),2) || '%' as Revenue_growth, --doanh thu tháng sau-doanh thu tháng trước)/doanh thu tháng trước
+ROUND(100*(TPO-lag(TPO) over(partition by Product_category order by month))/lag(TPO) over(partition by Product_category order by month),2) || '%' as Order_growth, --số đơn hàng tháng sau - số đơn hàng tháng trước)/số đơn tháng trước
+from abc)
+
+select * from def
+
