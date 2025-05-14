@@ -25,3 +25,110 @@ group by 1
 order by 1
 -- Insight:
 distinct_user tăng theo thời gian, nhưng average_order_value xu hương tương tự theo thời gian
+
+
+--Câu 3
+WITH M_youngest AS (
+  SELECT 
+    first_name, last_name, gender, age, 
+    'youngest' AS tag
+  FROM bigquery-public-data.thelook_ecommerce.users
+  WHERE created_at BETWEEN '2019-01-01' AND '2022-04-30'
+  AND gender = 'M'
+    AND age = (SELECT MIN(age) 
+               FROM bigquery-public-data.thelook_ecommerce.users
+               WHERE gender = users.gender)
+),
+M_oldest AS (
+  SELECT 
+    first_name, last_name, gender, age, 
+    'oldest' AS tag
+  FROM bigquery-public-data.thelook_ecommerce.users
+  WHERE created_at BETWEEN '2019-01-01' AND '2022-04-30'
+    AND gender = 'M'
+    AND age = (SELECT MAX(age) 
+               FROM bigquery-public-data.thelook_ecommerce.users 
+               WHERE gender = users.gender)
+),
+
+F_youngest AS (
+  SELECT 
+    first_name, last_name, gender, age, 
+    'youngest' AS tag
+  FROM bigquery-public-data.thelook_ecommerce.users
+  WHERE created_at BETWEEN '2019-01-01' AND '2022-04-30'
+  AND gender = 'F'
+    AND age = (SELECT MIN(age) 
+               FROM bigquery-public-data.thelook_ecommerce.users
+               WHERE gender = users.gender)
+),
+F_oldest AS (
+  SELECT 
+    first_name, last_name, gender, age, 
+    'oldest' AS tag
+  FROM bigquery-public-data.thelook_ecommerce.users
+  WHERE created_at BETWEEN '2019-01-01' AND '2022-04-30'
+    AND gender = 'F'
+    AND age = (SELECT MAX(age) 
+               FROM bigquery-public-data.thelook_ecommerce.users 
+               WHERE gender = users.gender)
+)
+SELECT * FROM F_oldest
+UNION all
+SELECT * FROM F_youngest
+UNION all
+SELECT * FROM M_oldest
+UNION all
+SELECT * FROM M_youngest
+
+
+-- 4
+with product_sales as(
+select 
+FORMAT_TIMESTAMP('%Y-%m', a.created_at) as month_year,
+a.product_id, 
+b.name as product_name,
+
+sum(a.sale_price) as sales,
+sum(b.cost) as cost,
+sum(a.sale_price)-sum(b.cost) as profit
+
+from bigquery-public-data.thelook_ecommerce.products as b
+join bigquery-public-data.thelook_ecommerce.order_items as a
+on a.id=b.id
+where a.created_at between '2019-01-01' and '2022-04-30'
+and a.status = 'Complete'
+group by 1,2,3
+order by 1),
+
+ranked_products as(
+select *,
+ dense_rank() over(partition by month_year order by profit DESC) as rank_per_month
+from product_sales)
+
+select * from ranked_products
+where rank_per_month <=5
+order by month_year
+
+-- 5
+select 
+FORMAT_TIMESTAMP('%Y-%m-%d', a.created_at) as month_year_day,
+b.category as product_categories,
+sum(a.sale_price) as revenue
+from bigquery-public-data.thelook_ecommerce.products as b
+join bigquery-public-data.thelook_ecommerce.order_items as a
+on a.id=b.id
+where a.created_at between '2022-01-15' and '2022-04-15'
+and a.status = 'Complete'
+group by 1, 2
+order by 1
+
+
+select * from bigquery-public-data.thelook_ecommerce.order_items
+--id, order_id, user_id, product_id, inventory_item_id, status (complete,canelled, processing,...), created_at. shipped_at, delivered_at, returned_at, sale_price
+SELECT * FROM bigquery-public-data.thelook_ecommerce.orders
+-- order_id, user_id, status, gender, created_at, num_of_item
+SELECT * FROM bigquery-public-data.thelook_ecommerce.products
+-- id, cost, category,name, brand, retail_price, department, sku, distribution_center_id
+
+
