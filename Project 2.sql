@@ -161,3 +161,115 @@ from abc)
 
 select * from def
 
+--select * from strategic-grove-459715-i9.12345.vw_ecommerce_analyst
+--- month, year, Product_category, TPV, TPO, Total_cost, Total_profit, Profit_to_cost_ratio, Revenue_growth --26 null , Order_growth --26
+
+select * FROM strategic-grove-459715-i9.12345.vw_ecommerce_analyst  -- 1700 BANG GHI
+WHERE Order_growth IS NULL
+
+/* Bước 1 - Khám phá & làm sạch dữ liệu
+- Chúng ta đang quan tâm đến trường nào?
+- Check null
+- Chuyển đổi kiểu dữ liệu
+- Số tiền và số lượng > 0
+- Check dup */
+with table_convert as (
+select 
+CAST(PARSE_DATE('%Y-%m', month) AS TIMESTAMP) AS month, 
+year, 
+Product_category, 
+cast(TPV as numeric) as TPV,
+cast(TPO as int) as TPO,
+cast(Total_cost as numeric) as Total_numeric,
+cast(Total_profit as numeric) as Total_profit,
+cast(Profit_to_cost_ratio as numeric) as Profit_to_cost_ratio,
+Revenue_growth,
+Order_growth
+from strategic-grove-459715-i9.12345.vw_ecommerce_analyst
+WHERE Order_growth <>''
+and cast(TPO as int)>0
+and cast(TPV as numeric) >0)
+
+,table_main as(
+  select * from(
+select *,
+row_number() over(partition by month,year, Product_category, TPO, TPV order by month ) as stt
+from table_convert) as t
+where stt=1)
+
+--select * from table_main
+
+----Bước 2:
+-- Tìm ngày mua hàng đầu tiên của mỗi KH => cohort_date
+-- Tìm index=tháng ( ngày mua hàng - ngày đầu tiên) + 1
+-- Count số lượng KH hoặc tổng doanh thu tại mỗi cohort_date và index tương ứng
+-- Pivot table
+
+--- begin analyst 
+
+--select * from table_main
+, table_index as(
+  select
+  Product_category,
+  TPV,
+  FORMAT_DATE('%Y-%m', DATE(first_purchase_date)) AS cohort_date,
+  month,
+  (extract('year' from month)-extract('year' from first_purchase_date))*12
+	+(extract('month' from month)-extract('month' from first_purchase_date))+1 as index
+  from(
+    select Product_category,
+TPV,
+MIN(month) over(PARTITION BY Product_category) as first_purchase_date ,
+month
+from table_main t
+) a)
+
+,xxx as(
+SELECT 
+cohort_date,
+index,
+count(distinct Product_category) as cnt,
+  sum(TPV) as revenue
+from table_index
+group by cohort_date, index)
+
+,customer_cohort as (
+select 
+cohort_date,
+sum(case when index=1 then cnt else 0 end ) as m1,
+sum(case when index=2 then cnt else 0 end ) as m2,
+sum(case when index=3 then cnt else 0 end ) as m3,
+sum(case when index=4 then cnt else 0 end ) as m4,
+sum(case when index=5 then cnt else 0 end ) as m5,
+sum(case when index=6 then cnt else 0 end ) as m6,
+sum(case when index=7then cnt else 0 end ) as m7,
+sum(case when index=8 then cnt else 0 end ) as m8,
+sum(case when index=9then cnt else 0 end ) as m9,
+sum(case when index=10 then cnt else 0 end ) as m10,
+sum(case when index=11 then cnt else 0 end ) as m11,
+sum(case when index=12 then cnt else 0 end ) as m12,
+sum(case when index=13 then cnt else 0 end ) as m13
+from xxx
+group by cohort_date
+order by cohort_date)
+
+select
+cohort_date,
+(100-round(100.00* m1/m1,2))||'%'  as m1,
+(100-round(100.00* m2/m1,2))|| '%'  as m2,
+(100-round(100.00* m3/m1,2)) || '%'  as m3,
+round(100.00* m4/m1,2) || '%'  as m4,
+round(100.00* m5/m1,2) || '%'  as m5,
+round(100.00* m6/m1,2) || '%'  as m6,
+round(100.00* m7/m1,2) || '%'  as m7,
+round(100.00* m8/m1,2) || '%'  as m8,
+round(100.00* m9/m1,2) || '%'  as m9,
+round(100.00* m10/m1,2) || '%'  as m10,
+round(100.00* m11/m1,2) || '%'  as m11,
+round(100.00* m12/m1,2) || '%'  as m12,
+round(100.00* m13/m1,2) || '%'  as m13
+from customer_cohort
+
+Syntax error: Missing whitespace between literal and alias at [70:22] !!
+
+
