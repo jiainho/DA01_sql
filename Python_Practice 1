@@ -1,0 +1,58 @@
+E1
+print(f'Result:{(6+4)*2 - 32 + 12//4*(6 + 4)*2 - 3**2 + 12 // 4*(6+4)*2-32+12//4}')
+#E2
+a=10
+a=a+5
+print(f'Result: {a}')
+
+#E3
+x=15
+y=20
+print(f'Is x less than y? Result: {x<y}')
+
+#E4
+num=23
+print(f'Result:{num%7}')
+
+#E5
+x="Fresher Academy"
+x=x.replace("a","@")
+x=x.replace("e","3")
+print(f'Result: {x}')
+
+#E6
+int_var=8
+float_var=2.5
+print(f'sum:{int_var+float_var}')
+print(f'difference:{abs(int_var-float_var)}')
+print(f'product:{int_var*float_var}')
+print(f'quotient:{int_var/float_var}')
+
+#E7
+my_string="Python Programming"
+print(f'The length: {len(my_string)}')
+print(f'String in uppercase: {my_string.upper()}')
+print(f'The string reversed: {my_string[::-1]}')
+
+#E8
+my_list = [10,20,30,40,50]
+print(my_list[0])
+print(my_list[-1])
+my_list.append(60)
+print(my_list)
+my_list.remove(30)
+print(my_list)
+
+#E9
+print(f'Value of the "name": {my_dict["name"]}')
+my_dict["country"]="USA"
+print(f'Add a new key-value pair "country":"USA": {my_dict}')
+my_dict["age"]=26
+print(f'Update the value of the "age": {my_dict}')
+
+#E10
+my_tuple = (100, 200, 300, 400, 500)
+print(f'1st of tuple: {my_tuple[0]}')
+print(f'Last of tuple: {my_tuple[-1]}')
+print(f'length of the tuple: {len(my_tuple)}')
+print(f'300 exists in the tuple? {300 in my_tuple}')
