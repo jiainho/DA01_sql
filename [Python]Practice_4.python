@@ -1,0 +1,73 @@
+# EX1: scores.csv data
+# sort and display the teams in ascending order based on score
+import pandas as pd
+df_scores=pd.read_csv('/content/scores.csv')
+
+# sort and display the teams in ascending order based on category, then by score
+df_scores.sort_values(['category','score'], ascending=False)
+
+#Calculate the mean of score for all teams in the dataset
+df_scores['score'].mean()
+
+#Filter the teams with scores greater than 80 and display them in decending order of year
+df_scores[df_scores['score']>80].sort_values('year',ascending=False)
+
+# Create a new column score_plus_10 by adding 10 to the score column
+df_scores['score_plus_10']=df_scores['score']+10
+df_scores
+
+# create a new column score_ratio by calculating the ratio of score to the maximum score in the dataset
+df_scores['score_ratio']= df_scores['score']/df_scores['score'].max()
+df_scores
+
+# How would you filter the data to include only teams with a category of 'A' or 'B' and score greater than 75
+df_scores[(df_scores['category'].insin(['A','B'])) & (df_score['score']>75)]
+
+# How would you group the dataset by category and calculate the sum of score for each category?
+df_scores.groupby('category').agg(total_score=('score','sum')).reset_index()
+
+#EX2 euro_12.csv
+import pandas as pd
+df_euro=pd.read_csv('/content/euro_12.csv')
+
+# Filter 5 columns Team, Goals, Yellow Cards and Players Used
+df_euro[['Team', 'Goals', 'Yellow Cards', 'Players Used']]
+
+# Sort and display teams in the ascending order of 'Player Used'
+df_euro.sort_values('Players Used', ascending=False)
+
+# Sort and display teams in the ascending order of 'Yellow Cards' and 'Red Cards' respectively
+df_euro.sort_values(['Yellow Cards', 'Red Cards'], ascending=False)
+
+# Calculate the mean of 'Yellow Cards' of all teams in Euro 2012
+df_euro['Yellow Cards'].mean()
+
+# Create a new column 'Shooting Accuracy' as ['Shots on target']/(['Shots on target']) + ['Shots off target'])*100
+df_euro['Shooting Accuracy']=df_euro['Shots on target']/(df_euro['Shots on target']+df_euro['Shots off target'])*100
+df_euro
+
+# Sort and display teams, goals and shooting accuracy in the descending order of 'Shooting Accuracy'
+df_euro.sort_values('Shooting Accuracy', ascending=False)[['Team', 'Goals', 'Shooting Accuracy']]
+
+# EX3 user.txt
+import pandas as pd
+df_users=pd.read_csv('/content/users.txt', sep='|')
+df_users
+
+# calculate mean of ages for each occupation
+df_users.groupby('occupation').agg(mean_age=('age','mean')).reset_index()
+
+#  Calculate male ratio (%) of each occupation
+df_users['gender_numeric'] = df_users['gender'].map({'M': 1, 'F': 0})
+male_ratios = df_users.groupby('occupation').agg(male_ratio=('gender_numeric','mean')).reset_index()
+display(male_ratios)
+
+# Sort male ratios in descending order
+male_ratios.sort_values('male_ratio', ascending=False)
+
+# Find and display mean of ages of male and female for each occupation
+df_users.groupby(['occupation','gender']).agg(mean_age=('age','mean')).reset_index()
+
+# Count and display occupations by gender (male and female)
+df_users.groupby(['occupation','gender']).agg(count=('gender','count')).reset_index()
+
