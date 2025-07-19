@@ -1,4 +1,4 @@
--- 01:
+-- 01: Data Type Cleaning - Chuyển đổi kiểu dữ liệu phù hợp cho các trường (sử dụng ALTER)
 ALTER TABLE SALES_DATASET_RFM_PRJ
 ALTER COLUMN priceeach TYPE numeric USING (priceeach::numeric),
 ALTER COLUMN ordernumber TYPE numeric USING (ordernumber::numeric),
@@ -8,11 +8,12 @@ ALTER COLUMN sales TYPE numeric USING (sales::numeric),
 ALTER COLUMN orderdate TYPE timestamp USING (orderdate::timestamp),
 ALTER COLUMN msrp TYPE numeric USING (msrp::numeric)
 
--- 02:
+-- 02: Check Null/Blank(")
 select * from SALES_DATASET_RFM_PRJ
 where (ORDERNUMBER, QUANTITYORDERED, PRICEEACH, ORDERLINENUMBER, SALES, ORDERDATE) is null 
 
--- 03:
+-- 03: Thêm cột CONTACTLASTNAME, CONTACTFIRSTNAME được tách ra từ CONTACTFULLNAME,
+  --chuẩn hóa theo định dạng chữ cái đầu tiên viết hoa, chữ cái tiếp theo viết thường
 ALTER TABLE SALES_DATASET_RFM_PRJ
 ADD CONTACTFIRSTNAME  VARCHAR
 ALTER TABLE SALES_DATASET_RFM_PRJ
@@ -26,7 +27,7 @@ UPDATE SALES_DATASET_RFM_PRJ
 SET CONTACTLASTNAME = 
 INITCAP(SUBSTRING(CONTACTFULLNAME FROM POSITION('-' IN CONTACTFULLNAME)+1))
 
--- 04:
+-- 04: Thêm cột QTR_ID, MONTH_ID, YEAR_ID lần lượt là Quý, tháng, năm được lấy ra từ ORDERDATE
 ALTER TABLE SALES_DATASET_RFM_PRJ
 ADD QTR_ID  INT,
 ADD MONTH_ID  INT,
@@ -66,6 +67,6 @@ where QUANTITYORDERED < (select min_value from twt_min_max_value)
 or QUANTITYORDERED > (select max_value from twt_min_max_value)
 
 
--- 06:
+-- 06: Sau khi làm sạch dữ liệu, lưu vào bảng mới tên SALES_DATASET_RFM_PRJ_CLEAN
 create table SALES_DATASET_RFM_PRJ_CLEAN as
 select * from SALES_DATASET_RFM_PRJ
