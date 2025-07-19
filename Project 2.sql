@@ -1,5 +1,16 @@
---II. Ad-hoc tasks
---1. Số lượng đơn hàng và số lượng khách hàng mỗi tháng
+"Description
+Ecommerce Dataset: Exploratory Data Analysis (EDA) and Cohort Analysis in SQL
+
+I. Data Overview
+TheLook is an e-commerce website selling clothing items. The dataset contains information about customers, products, orders, logistics, web events, and digital marketing campaigns.
+https://console.cloud.google.com/marketplace/product/bigquery-public-data/thelook-ecommerce?q=search&referrer=search&project=sincere-torch-350709&inv=1&invt=Ab3Lpw 
+
+- Orders table: Records all customer order transactions.
+- Order_items table: Records item-level details for each order ID.
+- Products table: Records product details sold on TheLook, including price, brand, and product categories."
+		
+"II. Ad-hoc tasks"
+--1. Monthly Orders and Customer Counts
 
 select  --month_year ( yyyy-mm) , total_user, total_order
 FORMAT_TIMESTAMP('%Y-%m', created_at) as month_year,
@@ -10,10 +21,6 @@ where created_at between '2019-01-01' and '2022-04-30'
 and status = 'Complete'
 group by 1
 order by 1
--- Insight:
-total_user, total_order có xu hướng tăng từ 2019 - 2022
-
-==> Insight đáp án:
 /*--> Insight: 
     - Nhìn chung số lượng người mua hàng và đơn hàng tiêu thụ đã hoàn thành tăng dần theo mỗi tháng và năm   
     - Giai đoạn 2019-tháng 1 2022: người mua hàng có xu hướng mua sắm nhiều hơn vào ba tháng cuối năm (10-12) và tháng 1 năm kế tiếp do nhu cầu mua sắm cuối/đầu năm tăng 
@@ -24,7 +31,8 @@ total_user, total_order có xu hướng tăng từ 2019 - 2022
       doanh số cho riêng tháng 7.
 */
 
---2. Giá trị đơn hàng trung bình (AOV) và số lượng khách hàng mỗi tháng
+--2. Average Order Value (AOV) and Customer Count per Month
+--Formula: AOV = Total Sales Value / Number of Orders
 select 
 FORMAT_TIMESTAMP('%Y-%m', created_at) as month_year,
 count(distinct user_id) as distinct_user,
@@ -34,14 +42,11 @@ where created_at between '2019-01-01' and '2022-04-30'
 and status = 'Complete'
 group by 1
 order by 1
--- Insight:
-distinct_user tăng theo thời gian, nhưng average_order_value xu hương tương tự theo thời gian
-
 /*--> Insight: - Giai đoạn năm 2019 do số lượng người dùng ít khiến giá trị đơn hàng trung bình qua các tháng có tỷ lệ biến động cao.
                - Giai đoạn từ cuối năm 2019 lượng người dùng ổn định trên 400 và nhìn chung tiếp tục tăng qua các tháng, giá trị đơn hàng trung bình qua các tháng ổn định ở mức ~80-90
  */
 
---Câu 3
+--Câu 3 - Customer Age Grouping
 WITH M_youngest AS (
   SELECT 
     first_name, last_name, gender, age, 
@@ -100,7 +105,8 @@ SELECT * FROM M_youngest
       - Giới tính Female: lớn tuổi nhất là 70 tuổi (525 người người dùng); nhỏ tuổi nhất là 12 tuổi (569 người dùng)
       - Giới tính Male: lớn tuổi nhất là 70 tuổi (529 người người dùng); nhỏ tuổi nhất là 12 tuổi (546 người dùng)
 */	
--- 4
+
+-- 4. Top 5 Products per Month
 with product_sales as(
 select 
 FORMAT_TIMESTAMP('%Y-%m', a.created_at) as month_year,
@@ -128,7 +134,7 @@ select * from ranked_products
 where rank_per_month <=5
 order by month_year
 
--- 5
+-- 5. Cumulative Revenue by Category (Past 3 Months)
 select 
 FORMAT_TIMESTAMP('%Y-%m-%d', a.created_at) as month_year_day,
 b.category as product_categories,
@@ -181,7 +187,9 @@ select * from def
 --- month, year, Product_category, TPV, TPO, Total_cost, Total_profit, Profit_to_cost_ratio, Revenue_growth --26 null , Order_growth --26
 select * FROM strategic-grove-459715-i9.12345.vw_ecommerce_analyst  -- 1700 BANG GHI
 WHERE Order_growth IS NULL
-___SAI CODE______________________________________________________________
+--==> Code sai
+_________________________________________________________________
+
 /* Bước 1 - Khám phá & làm sạch dữ liệu
 - Chúng ta đang quan tâm đến trường nào?
 - Check null
@@ -211,8 +219,6 @@ select *,
 row_number() over(partition by month,year, Product_category, TPO, TPV order by month ) as stt
 from table_convert) as t
 where stt=1)
-
---select * from table_main
 
 ----Bước 2:
 -- Tìm ngày mua hàng đầu tiên của mỗi KH => cohort_date
@@ -349,7 +355,7 @@ from customer_cohort
 --> Chart cohort:
 https://docs.google.com/spreadsheets/d/1KT6kU-WSc6_qrohmylYGuGhpAznP0vwb/edit?usp=sharing&ouid=113831551563412238237&rtpof=true&sd=true
 
---> Insight - Bài sửa
+--> Insight
 /*
 Nhìn chung hằng tháng TheLook ghi nhận số lượng người dùng mới tăng dần đều, thể hiện chiến dịch quảng cáo tiếp cận người dùng
 mới có hiệu quả.
